@@ -633,13 +633,11 @@ async function resetDemoData() {
                 </div>
 
                 <div className="w-full sm:flex-1 min-w-0 space-y-3">
-                  {!isConnected && (
-                    <div className="flex justify-end">
-                      <button onClick={() => open()} disabled={!ready} className="rounded-full bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700 disabled:opacity-50 focus:outline-none whitespace-nowrap">
-                        {ready ? "+ Connect accounts" : "Loading…"}
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex justify-end">
+                    <button onClick={() => open()} disabled={!ready} className="rounded-full bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700 disabled:opacity-50 focus:outline-none whitespace-nowrap">
+                      {ready ? (isConnected ? "+ Add accounts" : "+ Connect accounts") : "Loading…"}
+                    </button>
+                  </div>
                   <div className="flex bg-slate-100 rounded-full p-1">
                     <button onClick={() => setActiveFilter("debts")} className={tabBtn("debts")}>Debts</button>
                     <button onClick={() => setActiveFilter("assets")} className={tabBtn("assets")}>Assets</button>
