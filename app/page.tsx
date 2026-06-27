@@ -628,12 +628,15 @@ async function resetDemoData() {
                 </div>
 
                 <div className="w-full sm:flex-1 min-w-0 space-y-3">
-                  <div className="flex justify-end items-center gap-3">
+                  <div className="flex justify-end items-center gap-2">
                     {isConnected && (
-                      <button onClick={syncAccounts} disabled={syncing} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 disabled:opacity-50 focus:outline-none">
-                        <svg className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 8A5.5 5.5 0 1 1 8 2.5M13.5 2.5v3h-3"/></svg>
-                        {syncing ? "Syncing…" : "Sync accounts"}
-                      </button>
+                      <>
+                        <button onClick={syncAccounts} disabled={syncing} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 disabled:opacity-50 focus:outline-none">
+                          <svg className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 8A5.5 5.5 0 1 1 8 2.5M13.5 2.5v3h-3"/></svg>
+                          {syncing ? "Syncing…" : "Sync"}
+                        </button>
+                        <span className="text-slate-300 select-none">|</span>
+                      </>
                     )}
                     <button onClick={() => open()} disabled={!ready} className="text-xs text-slate-400 hover:text-slate-600 disabled:opacity-50 focus:outline-none">
                       {ready ? "Add accounts with Plaid" : "Loading…"}
