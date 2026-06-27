@@ -494,7 +494,7 @@ async function resetDemoData() {
   const centerLabel = activeFilter === "debts" ? "Total debt" : activeFilter === "assets" ? "Total assets" : "Net worth";
 
   const tabBtn = (key: AccountFilter) =>
-    `flex-1 rounded-full px-2 py-1.5 text-sm font-medium whitespace-nowrap transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 ${
+    `flex-1 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 ${
       activeFilter === key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
     }`;
 
@@ -554,8 +554,8 @@ async function resetDemoData() {
           <>
             {/* HERO ring */}
             <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
-              <div className="flex items-center gap-6">
-                <div className="relative shrink-0" style={{ width: 176, height: 176 }}>
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                <div className="relative shrink-0 w-44 h-44">
                   <svg viewBox="0 0 160 160" className="w-44 h-44 -rotate-90">
                     <circle cx="80" cy="80" r="64" fill="none" stroke="#eef0f3" strokeWidth="14" />
                     {ringTotal > 0 && (
@@ -573,8 +573,8 @@ async function resetDemoData() {
                   </div>
                 </div>
 
-                <div className="flex-1 min-w-0 space-y-3">
-                  <div className="flex bg-slate-100 rounded-full p-1 overflow-hidden w-full">
+                <div className="w-full sm:flex-1 min-w-0 space-y-3">
+                  <div className="flex bg-slate-100 rounded-full p-1">
                     <button onClick={() => setActiveFilter("debts")} className={tabBtn("debts")}>Debts</button>
                     <button onClick={() => setActiveFilter("assets")} className={tabBtn("assets")}>Assets</button>
                     <button onClick={() => setActiveFilter("all")} className={tabBtn("all")}>Net Worth</button>
