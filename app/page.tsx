@@ -494,7 +494,7 @@ async function resetDemoData() {
   const centerLabel = activeFilter === "debts" ? "Total debt" : activeFilter === "assets" ? "Total assets" : "Net worth";
 
   const tabBtn = (key: AccountFilter) =>
-    `flex-1 rounded-full px-3 py-1.5 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 ${
+    `flex-1 rounded-full px-2 py-1.5 text-sm font-medium whitespace-nowrap transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 ${
       activeFilter === key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
     }`;
 
@@ -574,7 +574,7 @@ async function resetDemoData() {
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-3">
-                  <div className="flex bg-slate-100 rounded-full p-1">
+                  <div className="flex bg-slate-100 rounded-full p-1 overflow-hidden w-full">
                     <button onClick={() => setActiveFilter("debts")} className={tabBtn("debts")}>Debts</button>
                     <button onClick={() => setActiveFilter("assets")} className={tabBtn("assets")}>Assets</button>
                     <button onClick={() => setActiveFilter("all")} className={tabBtn("all")}>Net Worth</button>
