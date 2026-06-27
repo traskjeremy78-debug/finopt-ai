@@ -633,6 +633,13 @@ async function resetDemoData() {
                 </div>
 
                 <div className="w-full sm:flex-1 min-w-0 space-y-3">
+                  {!isConnected && (
+                    <div className="flex justify-end">
+                      <button onClick={() => open()} disabled={!ready} className="rounded-full bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700 disabled:opacity-50 focus:outline-none whitespace-nowrap">
+                        {ready ? "+ Connect accounts" : "Loading…"}
+                      </button>
+                    </div>
+                  )}
                   <div className="flex bg-slate-100 rounded-full p-1">
                     <button onClick={() => setActiveFilter("debts")} className={tabBtn("debts")}>Debts</button>
                     <button onClick={() => setActiveFilter("assets")} className={tabBtn("assets")}>Assets</button>
@@ -664,16 +671,9 @@ async function resetDemoData() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-3 gap-4">
-                <p className="text-[11px] text-slate-400">
-                  Green is yours. Amber is low-rate debt that&apos;s smart to keep. Red is debt costing more than the market likely returns.
-                </p>
-                {!isConnected && (
-                  <button onClick={() => open()} disabled={!ready} className="shrink-0 rounded-full bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700 disabled:opacity-50 focus:outline-none whitespace-nowrap">
-                    {ready ? "+ Connect accounts" : "Loading…"}
-                  </button>
-                )}
-              </div>
+              <p className="text-[11px] text-slate-400 mt-3">
+                Green is yours. Amber is low-rate debt that&apos;s smart to keep. Red is debt costing more than the market likely returns.
+              </p>
 
               {(allRankedAssets.length > 0 || allRankedDebts.length > 0) && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
