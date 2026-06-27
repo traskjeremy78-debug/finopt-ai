@@ -562,11 +562,11 @@ async function resetDemoData() {
           </div>
           <div className="flex items-center gap-2">
             {isConnected && (
-              <button onClick={syncAccounts} disabled={syncing} className="text-xs text-slate-400 hover:text-rose-600 disabled:opacity-50 focus:outline-none">
+              <button onClick={syncAccounts} disabled={syncing} className="text-xs text-slate-400 hover:text-slate-600 disabled:opacity-50 focus:outline-none">
                 {syncing ? "Syncing…" : "Sync"}
               </button>
             )}
-            <button onClick={resetDemoData} disabled={resetting} className="text-xs text-slate-400 hover:text-rose-600 disabled:opacity-50 focus:outline-none">
+            <button onClick={resetDemoData} disabled={resetting} className="text-xs text-slate-400 hover:text-slate-600 disabled:opacity-50 focus:outline-none">
               {resetting ? "Resetting…" : "Reset demo"}
             </button>
           </div>
@@ -634,7 +634,7 @@ async function resetDemoData() {
 
                 <div className="w-full sm:flex-1 min-w-0 space-y-3">
                   <div className="flex justify-end">
-                    <button onClick={() => open()} disabled={!ready} className="text-xs text-slate-400 hover:text-rose-600 disabled:opacity-50 focus:outline-none">
+                    <button onClick={() => open()} disabled={!ready} className="text-xs text-slate-400 hover:text-slate-600 disabled:opacity-50 focus:outline-none">
                       {ready ? "Add accounts with Plaid" : "Loading…"}
                     </button>
                   </div>
