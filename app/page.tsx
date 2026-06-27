@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePlaidLink } from "react-plaid-link";
 import { computeFinOptScore } from "../src/lib/finopt";
@@ -146,6 +146,9 @@ async function resetDemoData() {
   const [matchCapPercent, setMatchCapPercent] = useState(6);
   const [currentContributionPercent, setCurrentContributionPercent] = useState(0);
   const [annualSalary, setAnnualSalary] = useState(0);
+
+  const manualSectionRef = useRef<HTMLDivElement>(null);
+  const assumptionsSectionRef = useRef<HTMLDivElement>(null);
 
   const [manualItems, setManualItems] = useState<ManualItem[]>([]);
   const [manualExpanded, setManualExpanded] = useState(false);
@@ -575,8 +578,14 @@ async function resetDemoData() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-3">Get started</p>
               <div className="space-y-3">
                 {checklistItem(isConnected, "Connect your accounts", () => open())}
-                {checklistItem(manualItems.length > 0, "Add off-book assets/debts", () => setManualExpanded(true))}
-                {checklistItem(age !== null, "Tell us about yourself", () => setAssumptionsExpanded(true))}
+                {checklistItem(manualItems.length > 0, "Add off-book assets/debts", () => {
+                  setManualExpanded(true);
+                  setTimeout(() => manualSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                })}
+                {checklistItem(age !== null, "Tell us about yourself", () => {
+                  setAssumptionsExpanded(true);
+                  setTimeout(() => assumptionsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                })}
               </div>
               {(isConnected && manualItems.length > 0 && age !== null) && (
                 <p className="text-[11px] text-emerald-600 font-medium mt-3">All set!</p>
@@ -807,7 +816,7 @@ async function resetDemoData() {
             )}
 
             {/* Manual assets & debts */}
-            <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <div ref={manualSectionRef} className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
               <button onClick={() => setManualExpanded(!manualExpanded)} className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none">
                 <span className="text-sm font-semibold">
                   Other assets &amp; debts
@@ -1002,7 +1011,7 @@ async function resetDemoData() {
             </div>
 
             {/* Assumptions */}
-            <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <div ref={assumptionsSectionRef} className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
               <button onClick={() => setAssumptionsExpanded(!assumptionsExpanded)} className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none">
                 <span className="text-sm font-semibold">About you</span>
                 <span className="text-xs text-slate-400">{age != null ? `Age ${age} · ` : ""}{benchmarkRate}% benchmark{hasMatch ? " · match on" : ""} · {assumptionsExpanded ? "Hide" : "Edit"}</span>
