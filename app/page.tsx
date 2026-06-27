@@ -97,6 +97,31 @@ export default function HomePage() {
   const [lastPaymentValue, setLastPaymentValue] = useState("");
   const [savingLastPaymentId, setSavingLastPaymentId] = useState<string | null>(null);
 
+const [resetting, setResetting] = useState(false);
+
+async function resetDemoData() {
+  if (!confirm("This will permanently erase all connected accounts, transactions, and holdings for everyone using this link. Continue?")) {
+    return;
+  }
+  setResetting(true);
+  try {
+    const res = await fetch("/api/admin/reset", { method: "POST" });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || "Reset failed");
+    try {
+      window.localStorage.removeItem("finopt_age");
+      window.localStorage.removeItem("finopt_manual_items");
+    } catch {}
+    alert("Demo data reset. Reloading...");
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to reset demo data.");
+  } finally {
+    setResetting(false);
+  }
+}
+
   const [hasMatch, setHasMatch] = useState(false);
   const [matchCapPercent, setMatchCapPercent] = useState(6);
   const [currentContributionPercent, setCurrentContributionPercent] = useState(0);
@@ -496,11 +521,14 @@ export default function HomePage() {
             <span className="text-lg font-bold tracking-tight">FinOpt</span>
             <span className="text-lg font-light text-emerald-600 tracking-tight">AI</span>
           </div>
-          {isConnected && (
-            <button onClick={syncAccounts} disabled={syncing} className="text-sm text-slate-500 hover:text-slate-900 disabled:opacity-50 focus:outline-none">
-              {syncing ? "Syncing…" : "Sync"}
-            </button>
-          )}
+{isConnected && (
+  <button onClick={syncAccounts} disabled={syncing} className="text-sm text-slate-500 hover:text-slate-900 disabled:opacity-50 focus:outline-none">
+    {syncing ? "Syncing…" : "Sync"}
+  </button>
+)}
+<button onClick={resetDemoData} disabled={resetting} className="text-xs text-slate-400 hover:text-rose-600 disabled:opacity-50 focus:outline-none ml-2">
+  {resetting ? "Resetting…" : "Reset demo"}
+</button>
         </div>
 
         {error && <div className="rounded-xl bg-rose-50 text-rose-700 px-4 py-3 text-sm">{error}</div>}
