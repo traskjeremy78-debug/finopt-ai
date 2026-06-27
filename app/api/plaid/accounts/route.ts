@@ -88,6 +88,12 @@ export async function GET() {
       const minimumPayment = minPaymentByAccountId.get(account.account_id) ?? null;
       const lastPaymentAmount = lastPaymentByAccountId.get(account.account_id) ?? null;
 
+      const existing = await db.account.findUnique({
+        where: { plaidAccountId: account.account_id },
+        select: { rateSource: true },
+      });
+      const userEdited = existing?.rateSource === "user";
+
       await db.account.upsert({
         where: { plaidAccountId: account.account_id },
         update: {
@@ -99,9 +105,7 @@ export async function GET() {
           availableBalance: account.balances.available ?? null,
           currency: account.balances.iso_currency_code ?? "USD",
           mask: account.mask ?? null,
-          apr: apr,
-          minimumPayment: minimumPayment,
-          lastPaymentAmount: lastPaymentAmount,
+          ...(userEdited ? {} : { apr, minimumPayment, lastPaymentAmount }),
           lastUpdatedAt: new Date(),
         },
         create: {

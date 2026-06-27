@@ -25,7 +25,6 @@ export async function PATCH(
         );
       }
       dataToUpdate.apr = rate;
-      dataToUpdate.rateSource = "user";
     }
 
     if (body.minimumPayment !== undefined) {
@@ -49,6 +48,9 @@ export async function PATCH(
       }
       dataToUpdate.lastPaymentAmount = lastPayment;
     }
+
+    // Mark as user-edited whenever any financial field is manually set
+    dataToUpdate.rateSource = "user";
 
     if (Object.keys(dataToUpdate).length === 0) {
       return NextResponse.json(
