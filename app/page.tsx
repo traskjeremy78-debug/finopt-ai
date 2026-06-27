@@ -553,9 +553,12 @@ async function resetDemoData() {
       <div className="max-w-5xl mx-auto px-5 py-8">
 
         <div className="flex items-center justify-between mb-5">
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold tracking-tight">FinOpt</span>
-            <span className="text-lg font-light text-emerald-600 tracking-tight">AI</span>
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-bold tracking-tight">FinOpt</span>
+              <span className="text-lg font-light text-emerald-600 tracking-tight">AI</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">You decide what to spend — we help you see how your money is working.</p>
           </div>
           <div className="flex items-center gap-2">
             {isConnected && (
@@ -572,7 +575,8 @@ async function resetDemoData() {
         {error && <div className="rounded-xl bg-rose-50 text-rose-700 px-4 py-3 text-sm mb-5">{error}</div>}
 
         <div className="flex flex-col lg:flex-row gap-6 items-start">
-          {/* Get started checklist — top on mobile, sticky right column on desktop */}
+          {/* Get started checklist — hidden once all three items are complete */}
+          {!(isConnected && manualItems.length > 0 && age !== null) && (
           <div className="w-full lg:w-52 lg:shrink-0 order-first lg:order-last">
             <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 lg:sticky lg:top-6">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-3">Get started</p>
@@ -592,6 +596,7 @@ async function resetDemoData() {
               )}
             </div>
           </div>
+          )}{/* end checklist conditional */}
 
           {/* Main content column */}
           <div className="flex-1 min-w-0 space-y-5">
@@ -608,6 +613,13 @@ async function resetDemoData() {
           <>
             {/* HERO ring */}
             <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
+              {!isConnected && (
+                <div className="flex justify-end mb-3">
+                  <button onClick={() => open()} disabled={!ready} className="rounded-full bg-slate-900 text-white text-xs font-medium px-4 py-1.5 hover:bg-slate-700 disabled:opacity-50 focus:outline-none">
+                    {ready ? "Connect accounts" : "Loading…"}
+                  </button>
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                 <div className="relative shrink-0 w-44 h-44">
                   <svg viewBox="0 0 160 160" className="w-44 h-44 -rotate-90">
