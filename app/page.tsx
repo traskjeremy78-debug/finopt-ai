@@ -541,6 +541,11 @@ async function resetDemoData() {
               Most money apps tell you to cut back. We show you what your money could be worth if you simply pointed
               it at the right place first — your match, your costliest debt, then the market.
             </p>
+            <div className="flex items-center justify-center gap-2 text-sm">
+              <span className="text-slate-500">Your age</span>
+              <input type="number" onChange={(e) => updateAge(e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1 w-16 focus:outline-none focus:ring-1 focus:ring-slate-300" placeholder="—" />
+              <span className="text-slate-400 text-xs">to compare with peers</span>
+            </div>
             <button onClick={() => open()} disabled={!ready} className="rounded-full bg-slate-900 text-white text-sm font-medium px-6 py-2.5 hover:bg-slate-800 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
               {ready ? "Connect your bank" : "Loading…"}
             </button>
@@ -683,14 +688,6 @@ async function resetDemoData() {
                     </div>
                   ))}
                 </div>
-
-                {age == null && (
-                  <div className="mt-3 flex items-center gap-2 text-sm">
-                    <span className="text-slate-500">Your age</span>
-                    <input type="number" onChange={(e) => updateAge(e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1 w-16 focus:outline-none focus:ring-1 focus:ring-slate-300" placeholder="—" />
-                    <span className="text-slate-400 text-xs">to compare with peers</span>
-                  </div>
-                )}
 
                 {scoreResult.fastestWin && (
                   <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2.5 text-sm text-slate-700">
