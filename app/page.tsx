@@ -71,6 +71,26 @@ type RankedItem = {
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 const MANUAL_ITEMS_KEY = "finopt_manual_items";
 
+const MOCK_ACCOUNTS: Account[] = [
+  { id: "mock-chk", name: "Chase Checking", officialName: "Chase Total Checking", type: "depository", subtype: "checking", currentBalance: 4218, availableBalance: 4218, currency: "USD", mask: "4821", apr: null, rateSource: null, minimumPayment: null, lastPaymentAmount: null, plaidAccountId: "mock-chk" },
+  { id: "mock-sav", name: "Marcus Savings", officialName: "Marcus High-Yield Savings", type: "depository", subtype: "savings", currentBalance: 11945, availableBalance: 11945, currency: "USD", mask: "3302", apr: 4.5, rateSource: null, minimumPayment: null, lastPaymentAmount: null, plaidAccountId: "mock-sav" },
+  { id: "mock-401k", name: "Fidelity 401(k)", officialName: null, type: "investment", subtype: "401k", currentBalance: 48320, availableBalance: null, currency: "USD", mask: null, apr: null, rateSource: null, minimumPayment: null, lastPaymentAmount: null, plaidAccountId: "mock-401k" },
+  { id: "mock-brok", name: "Vanguard Brokerage", officialName: null, type: "investment", subtype: "brokerage", currentBalance: 15512, availableBalance: null, currency: "USD", mask: null, apr: null, rateSource: null, minimumPayment: null, lastPaymentAmount: null, plaidAccountId: "mock-brok" },
+  { id: "mock-cc", name: "Visa Credit Card", officialName: null, type: "credit", subtype: "credit card", currentBalance: 4832, availableBalance: null, currency: "USD", mask: "5519", apr: 22.99, rateSource: null, minimumPayment: 96, lastPaymentAmount: 120, plaidAccountId: "mock-cc" },
+  { id: "mock-auto", name: "Toyota Auto Loan", officialName: null, type: "loan", subtype: "auto", currentBalance: 14208, availableBalance: null, currency: "USD", mask: null, apr: 7.2, rateSource: null, minimumPayment: 285, lastPaymentAmount: 285, plaidAccountId: "mock-auto" },
+  { id: "mock-student", name: "Federal Student Loans", officialName: null, type: "loan", subtype: "student", currentBalance: 28150, availableBalance: null, currency: "USD", mask: null, apr: 5.5, rateSource: null, minimumPayment: 318, lastPaymentAmount: 318, plaidAccountId: "mock-student" },
+];
+
+const MOCK_DASHBOARD: DashboardData = {
+  summary: { totalCash: 16163, totalInvestments: 63832, totalDebt: 47190, netWorth: 32805, accountCount: 7, recentTransactionCount: 12 },
+};
+
+const MOCK_MANUAL_ITEMS: ManualItem[] = [
+  { id: "mock-home", name: "Primary Residence", kind: "asset", balance: 340000, apr: null, minPayment: null, lastPayment: null },
+  { id: "mock-car", name: "Toyota RAV4", kind: "asset", balance: 24500, apr: null, minPayment: null, lastPayment: null },
+  { id: "mock-mortgage", name: "Mortgage", kind: "debt", balance: 294750, apr: 6.5, minPayment: 1850, lastPayment: 1850 },
+];
+
 export default function HomePage() {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -282,11 +302,18 @@ async function resetDemoData() {
     }
   }
 
-  const plaidAssets = (dashboard?.summary.totalCash ?? 0) + (dashboard?.summary.totalInvestments ?? 0);
-  const plaidDebts = dashboard?.summary.totalDebt ?? 0;
+  const isConnected = plaidStatus?.connected ?? false;
+  const usingMockData = !isConnected && manualItems.length === 0;
 
-  const manualAssetItems = useMemo(() => manualItems.filter((m) => m.kind === "asset"), [manualItems]);
-  const manualDebtItems = useMemo(() => manualItems.filter((m) => m.kind === "debt"), [manualItems]);
+  const effectiveDashboard = usingMockData ? MOCK_DASHBOARD : dashboard;
+  const effectiveAccounts = usingMockData ? MOCK_ACCOUNTS : accounts;
+  const effectiveManualItems = usingMockData ? MOCK_MANUAL_ITEMS : manualItems;
+
+  const plaidAssets = (effectiveDashboard?.summary.totalCash ?? 0) + (effectiveDashboard?.summary.totalInvestments ?? 0);
+  const plaidDebts = effectiveDashboard?.summary.totalDebt ?? 0;
+
+  const manualAssetItems = effectiveManualItems.filter((m) => m.kind === "asset");
+  const manualDebtItems = effectiveManualItems.filter((m) => m.kind === "debt");
   const manualAssetsTotal = manualAssetItems.reduce((s, m) => s + m.balance, 0);
   const manualDebtsTotal = manualDebtItems.reduce((s, m) => s + m.balance, 0);
 
@@ -294,14 +321,10 @@ async function resetDemoData() {
   const debts = plaidDebts + manualDebtsTotal;
   const netWorth = assets - debts;
 
-  const assetAccounts = useMemo(() => accounts.filter((a) => a.type === "depository" || a.type === "investment"), [accounts]);
-  const debtAccounts = useMemo(() => accounts.filter((a) => a.type === "credit" || a.type === "loan"), [accounts]);
+  const assetAccounts = effectiveAccounts.filter((a) => a.type === "depository" || a.type === "investment");
+  const debtAccounts = effectiveAccounts.filter((a) => a.type === "credit" || a.type === "loan");
 
-  const displayedAccounts = useMemo(() => {
-    if (activeFilter === "assets") return assetAccounts;
-    if (activeFilter === "debts") return debtAccounts;
-    return accounts;
-  }, [activeFilter, accounts, assetAccounts, debtAccounts]);
+  const displayedAccounts = activeFilter === "assets" ? assetAccounts : activeFilter === "debts" ? debtAccounts : effectiveAccounts;
 
   function getRateColor(apr: number, accountType: string): string {
     const isAsset = accountType === "depository" || accountType === "investment";
@@ -455,7 +478,7 @@ async function resetDemoData() {
   }, [householdDebtInputs, totalExtraAcrossDebts, benchmarkRate]);
 
   const scoreResult = useMemo(() => {
-    if (!dashboard) return null;
+    if (!effectiveDashboard) return null;
     const plaidScoreDebts = debtAccounts.filter((a) => a.apr != null).map((a) => ({
       apr: a.apr as number, balance: a.currentBalance, minPayment: a.minimumPayment ?? 0, lastPayment: a.lastPaymentAmount ?? 0,
     }));
@@ -467,9 +490,7 @@ async function resetDemoData() {
       benchmark: benchmarkRate, hasMatch, matchCapPercent, currentContributionPercent,
       netWorth, assets, totalDebt: debts, age,
     });
-  }, [dashboard, debtAccounts, manualDebtItems, benchmarkRate, hasMatch, matchCapPercent, currentContributionPercent, netWorth, assets, debts, age]);
-
-  const isConnected = plaidStatus?.connected ?? false;
+  }, [effectiveDashboard, debtAccounts, manualDebtItems, benchmarkRate, hasMatch, matchCapPercent, currentContributionPercent, netWorth, assets, debts, age]);
   const targetYear = new Date().getFullYear() + 30;
 
   const knownDebts = debtAccounts.filter((a) => a.apr != null);
@@ -512,45 +533,69 @@ async function resetDemoData() {
     return [...fromPlaid, ...fromManual].sort((a, b) => b.currentBalance - a.currentBalance).slice(0, 5);
   }, [debtAccounts, manualDebtItems]);
 
+  const checklistItem = (done: boolean, label: string, onClick: () => void) => (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-2.5 text-left group"
+    >
+      <span className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${done ? "bg-emerald-600 border-emerald-600" : "border-gray-300 group-hover:border-slate-400"}`}>
+        {done && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 10 10"><path d="M1.5 5l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+      </span>
+      <span className={`text-xs leading-snug ${done ? "line-through text-slate-400" : "text-slate-600 group-hover:text-slate-900"}`}>{label}</span>
+    </button>
+  );
+
   return (
     <main className="min-h-screen bg-[#f6f7f9] text-slate-900">
-      <div className="max-w-2xl mx-auto px-5 py-8 space-y-5">
+      <div className="max-w-5xl mx-auto px-5 py-8">
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold tracking-tight">FinOpt</span>
             <span className="text-lg font-light text-emerald-600 tracking-tight">AI</span>
           </div>
-{isConnected && (
-  <button onClick={syncAccounts} disabled={syncing} className="text-sm text-slate-500 hover:text-slate-900 disabled:opacity-50 focus:outline-none">
-    {syncing ? "Syncing…" : "Sync"}
-  </button>
-)}
-<button onClick={resetDemoData} disabled={resetting} className="text-xs text-slate-400 hover:text-rose-600 disabled:opacity-50 focus:outline-none ml-2">
-  {resetting ? "Resetting…" : "Reset demo"}
-</button>
-        </div>
-
-        {error && <div className="rounded-xl bg-rose-50 text-rose-700 px-4 py-3 text-sm">{error}</div>}
-
-        {!isConnected ? (
-          <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-8 text-center space-y-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">FinOpt AI</p>
-            <h1 className="text-2xl font-bold tracking-tight leading-snug">Grow your net worth<br />without spending a dollar less.</h1>
-            <p className="text-sm text-slate-500 max-w-sm mx-auto">
-              Most money apps tell you to cut back. We show you what your money could be worth if you simply pointed
-              it at the right place first — your match, your costliest debt, then the market.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm">
-              <span className="text-slate-500">Your age</span>
-              <input type="number" onChange={(e) => updateAge(e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1 w-16 focus:outline-none focus:ring-1 focus:ring-slate-300" placeholder="—" />
-              <span className="text-slate-400 text-xs">to compare with peers</span>
-            </div>
-            <button onClick={() => open()} disabled={!ready} className="rounded-full bg-slate-900 text-white text-sm font-medium px-6 py-2.5 hover:bg-slate-800 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
-              {ready ? "Connect your bank" : "Loading…"}
+          <div className="flex items-center gap-2">
+            {isConnected && (
+              <button onClick={syncAccounts} disabled={syncing} className="text-sm text-slate-500 hover:text-slate-900 disabled:opacity-50 focus:outline-none">
+                {syncing ? "Syncing…" : "Sync"}
+              </button>
+            )}
+            <button onClick={resetDemoData} disabled={resetting} className="text-xs text-slate-400 hover:text-rose-600 disabled:opacity-50 focus:outline-none">
+              {resetting ? "Resetting…" : "Reset demo"}
             </button>
           </div>
-        ) : (
+        </div>
+
+        {error && <div className="rounded-xl bg-rose-50 text-rose-700 px-4 py-3 text-sm mb-5">{error}</div>}
+
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          {/* Get started checklist — top on mobile, sticky right column on desktop */}
+          <div className="w-full lg:w-52 lg:shrink-0 order-first lg:order-last">
+            <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 lg:sticky lg:top-6">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-3">Get started</p>
+              <div className="space-y-3">
+                {checklistItem(isConnected, "Connect your accounts", () => open())}
+                {checklistItem(manualItems.length > 0, "Add off-book assets/debts", () => setManualExpanded(true))}
+                {checklistItem(age !== null, "Tell us about yourself", () => setAssumptionsExpanded(true))}
+              </div>
+              {(isConnected && manualItems.length > 0 && age !== null) && (
+                <p className="text-[11px] text-emerald-600 font-medium mt-3">All set!</p>
+              )}
+            </div>
+          </div>
+
+          {/* Main content column */}
+          <div className="flex-1 min-w-0 space-y-5">
+
+            {usingMockData && (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 flex items-center gap-3">
+                <span className="text-sm">🔒</span>
+                <p className="flex-1 text-xs text-amber-800"><span className="font-semibold">Sample data</span> — this is a preview with realistic numbers. Connect your accounts or add your own to see your real picture.</p>
+                <button onClick={() => open()} disabled={!ready} className="shrink-0 rounded-full bg-amber-800 text-white text-xs font-medium px-3 py-1.5 hover:bg-amber-900 disabled:opacity-50 focus:outline-none">
+                  {ready ? "Connect" : "…"}
+                </button>
+              </div>
+            )}
           <>
             {/* HERO ring */}
             <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
@@ -959,12 +1004,17 @@ async function resetDemoData() {
             {/* Assumptions */}
             <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
               <button onClick={() => setAssumptionsExpanded(!assumptionsExpanded)} className="w-full flex items-center justify-between px-5 py-4 text-left focus:outline-none">
-                <span className="text-sm font-semibold">Assumptions</span>
-                <span className="text-xs text-slate-400">{benchmarkRate}% benchmark{hasMatch ? " · match on" : ""} · {assumptionsExpanded ? "Hide" : "Edit"}</span>
+                <span className="text-sm font-semibold">About you</span>
+                <span className="text-xs text-slate-400">{age != null ? `Age ${age} · ` : ""}{benchmarkRate}% benchmark{hasMatch ? " · match on" : ""} · {assumptionsExpanded ? "Hide" : "Edit"}</span>
               </button>
 
               {assumptionsExpanded && (
                 <div className="px-5 pb-4 space-y-3 border-t border-gray-100 pt-3 text-sm">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-slate-500">Your age</span>
+                    <input type="number" onChange={(e) => updateAge(e.target.value)} defaultValue={age ?? ""} className="border border-gray-200 rounded-lg px-2 py-1 w-16 focus:outline-none focus:ring-1 focus:ring-slate-300" placeholder="—" />
+                    <span className="text-slate-400 text-xs">for peer comparison</span>
+                  </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-slate-500">Investment benchmark</span>
                     <input type="number" step="0.1" value={benchmarkRate} onChange={(e) => setBenchmarkRate(parseFloat(e.target.value) || 0)} className="border border-gray-200 rounded-lg px-2 py-1 w-16 focus:outline-none focus:ring-1 focus:ring-slate-300" />
@@ -990,8 +1040,9 @@ async function resetDemoData() {
               )}
             </div>
           </>
-        )}
-      </div>
+          </div>{/* end main content */}
+        </div>{/* end two-column flex */}
+      </div>{/* end max-w-5xl */}
     </main>
   );
 }
