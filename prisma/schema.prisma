@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RecommendationStatus {
+  ACTIVE
+  DISMISSED
+  COMPLETED
+}
+
+enum RecommendationType {
+  DEBTPAYDOWN
+  SUBSCRIPTIONCLEANUP
+  EMERGENCYFUND
+  SPENDINGSPIKE
+  IDLECASH
+  FEEDETECTION
+}
+
+model User {
+  id              String                   @id @default(cuid())
+  email           String                   @unique
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  plaidItems      PlaidItem[]
+  accounts        Account[]
+  transactions    Transaction[]
+  liabilities     Liability[]
+  holdings        Holding[]
+  snapshots       FinancialSnapshot[]
+  recommendations Recommendation[]
+  feedback        RecommendationFeedback[]
+}
+
+model PlaidItem {
+  id                   String    @id @default(cuid())
+  userId               String
+  plaidItemId          String    @unique
+  accessTokenEncrypted String
+  institutionName      String?
+  lastSyncedAt         DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts             Account[]
+
+  @@index([userId])
+}
+
+model Account {
+  id                String        @id @default(cuid())
+  userId            String
+  plaidItemId       String
+  plaidAccountId    String        @unique
+  name              String
+  officialName      String?
+  type              String
+  subtype           String?
+  currentBalance    Float
+  availableBalance  Float?
+  currency          String        @default("USD")
+  apr               Float?
+  rateSource        String?
+  minimumPayment    Float?
+  lastPaymentAmount Float?
+  mask              String?
+  isLiability       Boolean       @default(false)
+  lastUpdatedAt     DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidItem         PlaidItem     @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  transactions      Transaction[]
+  liabilities       Liability[]
+  holdings          Holding[]
+
+  @@index([userId])
+  @@index([plaidItemId])
+}
+
+model Transaction {
+  id                 String    @id @default(cuid())
+  userId             String
+  accountId          String
+  plaidTransactionId String    @unique
+  date               DateTime
+  amount             Float
+  merchantName       String?
+  name               String
+  categoryPrimary    String?
+  categoryDetailed   String?
+  pfcPrimary         String?
+  pfcDetailed        String?
+  paymentChannel     String?
+  logoUrl            String?
+  isoCurrencyCode    String?
+  isRecurringGuess   Boolean   @default(false)
+  pending            Boolean   @default(false)
+  rawJson            Json
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account            Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([accountId, date])
+}
+
+model Liability {
+  id             String    @id @default(cuid())
+  userId         String
+  accountId      String
+  type           String
+  balance        Float
+  minimumPayment Float?
+  apr            Float?
+  dueDate        DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account        Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountId])
+}
+
+model Holding {
+  id              String   @id @default(cuid())
+  userId          String
+  accountId       String
+  plaidSecurityId String
+  tickerSymbol    String?
+  securityName    String?
+  securityType    String?
+  quantity        Float
+  costBasis       Float?
+  currentValue    Float
+  yieldPercentage Float?
+  rateSource      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([plaidSecurityId, accountId])
+  @@index([userId])
+  @@index([accountId])
+}
+
+model FinancialSnapshot {
+  id                    String   @id @default(cuid())
+  userId                String
+  totalCash             Float
+  totalCreditCardDebt   Float
+  totalLoans            Float
+  monthlySpendEstimate  Float
+  monthlyIncomeEstimate Float?
+  netWorthEstimate      Float
+  emergencyFundMonths   Float?
+  generatedAt           DateTime @default(now())
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, generatedAt])
+}
+
+model Recommendation {
+  id                      String               @id @default(cuid())
+  userId                  String
+  type                    RecommendationType
+  title                   String
+  summary                 String
+  whyItMatters            String
+  suggestedAction         String
+  priorityScore           Float
+  estimatedMonthlySavings Float?
+  estimatedAnnualImpact   Float?
+  confidenceScore         Float
+  status                  RecommendationStatus @default(ACTIVE)
+  evidenceJson            Json
+  createdAt               DateTime             @default(now())
+  dismissedAt             DateTime?
+  completedAt             DateTime?
+  user                    User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback                RecommendationFeedback[]
+
+  @@index([userId, status, createdAt])
+}
+
+model RecommendationFeedback {
+  id               String         @id @default(cuid())
+  recommendationId String
+  userId           String
+  feedbackType     String
+  note             String?
+  createdAt        DateTime       @default(now())
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([recommendationId])
+  @@index([userId])
+}
