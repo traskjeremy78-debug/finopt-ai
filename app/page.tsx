@@ -574,14 +574,14 @@ async function resetDemoData() {
 
         {error && <div className="rounded-xl bg-rose-50 text-rose-700 px-4 py-3 text-sm mb-5">{error}</div>}
 
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 items-start lg:justify-center">
           {/* Get started checklist — hidden once all three items are complete */}
           {!(isConnected && manualItems.length > 0 && age !== null) && (
           <div className="w-full lg:w-52 lg:shrink-0 order-first lg:order-last">
             <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 lg:sticky lg:top-6">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-3">Get started</p>
               <div className="space-y-3">
-                {checklistItem(isConnected, "Connect your accounts", () => open())}
+                {checklistItem(isConnected, ready ? "Connect your accounts" : "Connect your accounts (loading…)", () => { if (ready) open(); })}
                 {checklistItem(manualItems.length > 0, "Add off-book assets/debts", () => {
                   setManualExpanded(true);
                   setTimeout(() => manualSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
@@ -599,7 +599,7 @@ async function resetDemoData() {
           )}{/* end checklist conditional */}
 
           {/* Main content column */}
-          <div className="flex-1 min-w-0 space-y-5">
+          <div className="w-full max-w-2xl min-w-0 space-y-5">
 
             {usingMockData && (
               <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 flex items-center gap-3">
@@ -613,13 +613,6 @@ async function resetDemoData() {
           <>
             {/* HERO ring */}
             <div className="rounded-2xl bg-white border border-gray-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
-              {!isConnected && (
-                <div className="flex justify-end mb-3">
-                  <button onClick={() => open()} disabled={!ready} className="rounded-full bg-slate-900 text-white text-xs font-medium px-4 py-1.5 hover:bg-slate-700 disabled:opacity-50 focus:outline-none">
-                    {ready ? "Connect accounts" : "Loading…"}
-                  </button>
-                </div>
-              )}
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                 <div className="relative shrink-0 w-44 h-44">
                   <svg viewBox="0 0 160 160" className="w-44 h-44 -rotate-90">
@@ -671,9 +664,16 @@ async function resetDemoData() {
                   </div>
                 </div>
               </div>
-              <p className="text-[11px] text-slate-400 mt-3">
-                Green is yours. Amber is low-rate debt that&apos;s smart to keep. Red is debt costing more than the market likely returns.
-              </p>
+              <div className="flex items-center justify-between mt-3 gap-4">
+                <p className="text-[11px] text-slate-400">
+                  Green is yours. Amber is low-rate debt that&apos;s smart to keep. Red is debt costing more than the market likely returns.
+                </p>
+                {!isConnected && (
+                  <button onClick={() => open()} disabled={!ready} className="shrink-0 rounded-full bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700 disabled:opacity-50 focus:outline-none whitespace-nowrap">
+                    {ready ? "+ Connect accounts" : "Loading…"}
+                  </button>
+                )}
+              </div>
 
               {(allRankedAssets.length > 0 || allRankedDebts.length > 0) && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
