@@ -94,20 +94,41 @@ export async function GET() {
       });
       const userEdited = existing?.rateSource === "user";
 
+      // Build the update object; skip financial fields the user has manually set
+      const updateFields: {
+        name: string;
+        officialName: string | null;
+        type: string;
+        subtype: string | null;
+        currentBalance: number;
+        availableBalance: number | null;
+        currency: string;
+        mask: string | null;
+        lastUpdatedAt: Date;
+        apr?: number | null;
+        minimumPayment?: number | null;
+        lastPaymentAmount?: number | null;
+      } = {
+        name: account.name,
+        officialName: account.official_name ?? null,
+        type: account.type,
+        subtype: account.subtype ?? null,
+        currentBalance: account.balances.current ?? 0,
+        availableBalance: account.balances.available ?? null,
+        currency: account.balances.iso_currency_code ?? "USD",
+        mask: account.mask ?? null,
+        lastUpdatedAt: new Date(),
+      };
+
+      if (!userEdited) {
+        updateFields.apr = apr;
+        updateFields.minimumPayment = minimumPayment;
+        updateFields.lastPaymentAmount = lastPaymentAmount;
+      }
+
       await db.account.upsert({
         where: { plaidAccountId: account.account_id },
-        update: {
-          name: account.name,
-          officialName: account.official_name ?? null,
-          type: account.type,
-          subtype: account.subtype ?? null,
-          currentBalance: account.balances.current ?? 0,
-          availableBalance: account.balances.available ?? null,
-          currency: account.balances.iso_currency_code ?? "USD",
-          mask: account.mask ?? null,
-          ...(userEdited ? {} : { apr, minimumPayment, lastPaymentAmount }),
-          lastUpdatedAt: new Date(),
-        },
+        update: updateFields,
         create: {
           userId: plaidItem.userId,
           plaidItemId: plaidItem.id,

@@ -49,15 +49,15 @@ export async function PATCH(
       dataToUpdate.lastPaymentAmount = lastPayment;
     }
 
-    // Mark as user-edited whenever any financial field is manually set
-    dataToUpdate.rateSource = "user";
-
     if (Object.keys(dataToUpdate).length === 0) {
       return NextResponse.json(
         { ok: false, error: "No valid fields provided" },
         { status: 400 }
       );
     }
+
+    // Mark as user-edited whenever any financial field is manually set
+    dataToUpdate.rateSource = "user";
 
     const account = await db.account.update({
       where: { id },
